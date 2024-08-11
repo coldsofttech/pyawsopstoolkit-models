@@ -116,7 +116,7 @@ A class representing an EC2 Security Group.
 
 ###### Constructors
 
-- `SecurityGroup(id: str, name: str, owner_id: str, vpc_id: str, ip_permissions: Optional[list[IPPermission]] = None, ip_permissions_egress: Optional[list[IPPermission]] = None, description: Optional[str] = None, tags: Optional[list] = None) -> None`:
+- `SecurityGroup(id: str, name: str, owner_id: str, vpc_id: str, ip_permissions: Optional[list[IPPermission]] = None, ip_permissions_egress: Optional[list[IPPermission]] = None, description: Optional[str] = None, tags: Optional[list] = None, in_use: Optional[bool] = None) -> None`:
   Initializes a new **SecurityGroup** object with the specified parameters.
 
 ###### Methods
@@ -127,6 +127,7 @@ A class representing an EC2 Security Group.
 
 - `description`: The description of the EC2 security group.
 - `id`: The unique identifier of the EC2 security group.
+- `in_use`: Flag to indicate if the EC2 security group is associated with any Elastic Network Interface (ENI).
 - `ip_permissions_egress`: The list of outbound rule entries for the EC2 security group.
 - `ip_permissions`: The list of inbound rule entries for the EC2 security group.
 - `name`: The name of the EC2 security group.

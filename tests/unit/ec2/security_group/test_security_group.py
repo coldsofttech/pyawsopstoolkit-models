@@ -18,7 +18,8 @@ class TestSecurityGroup(unittest.TestCase):
             'ip_permissions': [IPPermission(80, 80, 'tcp')],
             'ip_permissions_egress': [IPPermission(443, 443, 'tcp')],
             'description': 'Primary security group for web servers',
-            'tags': [{'Key': 'test_key', 'Value': 'test_value'}]
+            'tags': [{'Key': 'test_key', 'Value': 'test_value'}],
+            'in_use': True
         }
         self.security_group = self.create_security_group()
         self.security_group_with_ip_permissions = self.create_security_group(
@@ -29,11 +30,13 @@ class TestSecurityGroup(unittest.TestCase):
         )
         self.security_group_with_desc = self.create_security_group(description=self.params['description'])
         self.security_group_with_tags = self.create_security_group(tags=self.params['tags'])
+        self.security_group_with_in_use = self.create_security_group(in_use=self.params['in_use'])
         self.security_group_full = self.create_security_group(
             ip_permissions=self.params['ip_permissions'],
             ip_permissions_egress=self.params['ip_permissions_egress'],
             description=self.params['description'],
-            tags=self.params['tags']
+            tags=self.params['tags'],
+            in_use=self.params['in_use']
         )
 
     def create_security_group(self, **kwargs):
@@ -58,22 +61,31 @@ class TestSecurityGroup(unittest.TestCase):
         self.assertIsNone(self.security_group.ip_permissions_egress)
         self.assertIsNone(self.security_group.description)
         self.assertIsNone(self.security_group.tags)
+        self.assertIsNone(self.security_group.in_use)
 
     def test_initialization_with_optional_params(self):
         test_cases = [
-            (self.security_group_with_ip_permissions, self.params['ip_permissions'], None, None, None),
-            (self.security_group_with_ip_permissions_egress, None, self.params['ip_permissions_egress'], None, None),
-            (self.security_group_with_desc, None, None, self.params['description'], None),
-            (self.security_group_with_tags, None, None, None, self.params['tags']),
+            (self.security_group_with_ip_permissions, self.params['ip_permissions'], None, None, None, None),
+            (
+                self.security_group_with_ip_permissions_egress,
+                None,
+                self.params['ip_permissions_egress'],
+                None,
+                None,
+                None
+            ),
+            (self.security_group_with_desc, None, None, self.params['description'], None, None),
+            (self.security_group_with_tags, None, None, None, self.params['tags'], None),
             (
                 self.security_group_full,
                 self.params['ip_permissions'],
                 self.params['ip_permissions_egress'],
                 self.params['description'],
-                self.params['tags']
+                self.params['tags'],
+                self.params['in_use']
             )
         ]
-        for security_group, ip_permissions, ip_permissions_egress, description, tags in test_cases:
+        for security_group, ip_permissions, ip_permissions_egress, description, tags, in_use in test_cases:
             with self.subTest(security_group=security_group):
                 self.assertEqual(security_group.account, self.params['account'])
                 self.assertEqual(security_group.region, self.params['region'])
@@ -85,6 +97,7 @@ class TestSecurityGroup(unittest.TestCase):
                 self.assertEqual(security_group.ip_permissions_egress, ip_permissions_egress)
                 self.assertEqual(security_group.description, description)
                 self.assertEqual(security_group.tags, tags)
+                self.assertEqual(security_group.in_use, in_use)
 
     def test_setters(self):
         from pyawsopstoolkit.account import Account
@@ -99,7 +112,8 @@ class TestSecurityGroup(unittest.TestCase):
             'ip_permissions': [IPPermission(443, 443, 'tcp')],
             'ip_permissions_egress': [IPPermission(80, 80, 'tcp')],
             'description': 'Primary security group for load balancers',
-            'tags': [{'Key': 'test_key1', 'Value': 'test_value1'}]
+            'tags': [{'Key': 'test_key1', 'Value': 'test_value1'}],
+            'in_use': False
         }
 
         self.security_group_full.account = new_params['account']
@@ -112,6 +126,7 @@ class TestSecurityGroup(unittest.TestCase):
         self.security_group_full.ip_permissions_egress = new_params['ip_permissions_egress']
         self.security_group_full.description = new_params['description']
         self.security_group_full.tags = new_params['tags']
+        self.security_group_full.in_use = new_params['in_use']
 
         self.assertEqual(self.security_group_full.account, new_params['account'])
         self.assertEqual(self.security_group_full.region, new_params['region'])
@@ -123,6 +138,7 @@ class TestSecurityGroup(unittest.TestCase):
         self.assertEqual(self.security_group_full.ip_permissions_egress, new_params['ip_permissions_egress'])
         self.assertEqual(self.security_group_full.description, new_params['description'])
         self.assertEqual(self.security_group_full.tags, new_params['tags'])
+        self.assertEqual(self.security_group_full.in_use, new_params['in_use'])
 
     def test_invalid_types(self):
         from pyawsopstoolkit_validators.exceptions import ValidationError
@@ -137,7 +153,8 @@ class TestSecurityGroup(unittest.TestCase):
             'ip_permissions': [80],
             'ip_permissions_egress': [443],
             'description': 123,
-            'tags': 'tag_key=tag_value'
+            'tags': 'tag_key=tag_value',
+            'in_use': 'attached'
         }
 
         with self.assertRaises(TypeError):
@@ -202,6 +219,8 @@ class TestSecurityGroup(unittest.TestCase):
             self.create_security_group(description=invalid_params['description'])
         with self.assertRaises(TypeError):
             self.create_security_group(tags=invalid_params['tags'])
+        with self.assertRaises(TypeError):
+            self.create_security_group(in_use=invalid_params['in_use'])
 
         with self.assertRaises(TypeError):
             self.security_group_full.account = invalid_params['account']
@@ -223,6 +242,8 @@ class TestSecurityGroup(unittest.TestCase):
             self.security_group_full.description = invalid_params['description']
         with self.assertRaises(TypeError):
             self.security_group_full.tags = invalid_params['tags']
+        with self.assertRaises(TypeError):
+            self.security_group_full.in_use = invalid_params['in_use']
 
     def test_to_dict(self):
         expected_dict = {
@@ -235,7 +256,8 @@ class TestSecurityGroup(unittest.TestCase):
             "ip_permissions": [ip_perm.to_dict() for ip_perm in self.params['ip_permissions']],
             "ip_permissions_egress": [ip_perm.to_dict() for ip_perm in self.params['ip_permissions_egress']],
             "description": self.params['description'],
-            "tags": self.params['tags']
+            "tags": self.params['tags'],
+            "in_use": self.params['in_use']
         }
         self.assertDictEqual(self.security_group_full.to_dict(), expected_dict)
 
@@ -250,7 +272,8 @@ class TestSecurityGroup(unittest.TestCase):
             "ip_permissions": None,
             "ip_permissions_egress": None,
             "description": None,
-            "tags": None
+            "tags": None,
+            "in_use": None
         }
         self.assertDictEqual(self.security_group.to_dict(), expected_dict)
 
