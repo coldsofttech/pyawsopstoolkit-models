@@ -252,6 +252,7 @@ class SecurityGroup:
     ip_permissions_egress: Optional[list[IPPermission]] = None
     description: Optional[str] = None
     tags: Optional[list] = None
+    in_use: Optional[bool] = None
 
     def __post_init__(self):
         for field_name, field_value in self.__dataclass_fields__.items():
@@ -288,6 +289,8 @@ class SecurityGroup:
                     )
         elif field_name in ['description']:
             _validate_type(field_value, Union[str, None], f'{field_name} should be of string.')
+        elif field_name in ['in_use']:
+            _validate_type(field_value, Union[bool, None], f'{field_name} should be a boolean.')
 
     def __setattr__(self, key, value):
         super().__setattr__(key, value)
@@ -315,5 +318,6 @@ class SecurityGroup:
                 ip_perm.to_dict() for ip_perm in self.ip_permissions_egress
             ] if self.ip_permissions_egress and len(self.ip_permissions_egress) > 0 else None,
             "description": self.description,
-            "tags": self.tags
+            "tags": self.tags,
+            "in_use": self.in_use
         }
